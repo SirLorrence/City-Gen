@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class CityGen : MonoBehaviour
 {
@@ -9,9 +11,9 @@ public class CityGen : MonoBehaviour
     public Vector3[,] mapData;
 
     public List<Vector3[,]> listOfBlocks = new List<Vector3[,]>();
+    public List<Vector3> buildings = new List<Vector3>();
+    private List<Vector3> removeObject = new List<Vector3>();
 
-
-    public float sizePerArea;
     public float spacing;
 
 
@@ -32,30 +34,32 @@ public class CityGen : MonoBehaviour
         GenArray();
         CutVertical(mapData);
         buildBlock();
-        // buildBlock(mapData);
     }
 
 
     void buildBlock()
     {
-        // for (int z = 0; z <= array.GetUpperBound(1); z++)
-        // {
-        //     for (int x = 0; x <= array.GetUpperBound(0); x++)
-        //     {
-        //         var point = array[x, z];
-        //         var block = Instantiate(cube, point, Quaternion.identity);
-        //         block.transform.parent = gameObject.transform;
-        //     }
-        // }
-
+        //create blocks/neigbberhoods
         foreach (var blocks in listOfBlocks)
         {
             foreach (var point in blocks)
             {
-                var block = Instantiate(cube, point, Quaternion.identity);
-                block.transform.parent = gameObject.transform;
+                if (!buildings.Contains(point))
+                {
+                    var block = Instantiate(cube, point, Quaternion.identity);
+                    buildings.Add(block.transform.position);
+                    block.transform.parent = gameObject.transform;
+                }
             }
         }
+
+        foreach (var o in removeObject)
+        {
+            
+        }
+
+
+        //destory overlapping building to create roads
     }
 
     void GenArray()
@@ -83,23 +87,14 @@ public class CityGen : MonoBehaviour
         {
             for (int x = 0; x <= initalArray.GetUpperBound(0) / 2 - 1; x++)
             {
+                // Gizmos.color = Color.green;
+                // Gizmos.DrawSphere(initalArray[x, z], 0.5f);
                 arrayBlock[x, z] = initalArray[x, z];
             }
         }
 
         listOfBlocks.Add(arrayBlock);
         //
-        // foreach (var point in arrayBlock)
-        // {
-        //     print($"ArrayBlock point: {point}");
-        // }
-        //
-        // foreach (var point in listOfBlocks[0])
-        // {
-        //     print($"ListBlock  point: {point}"); 
-        // }
-        // buildBlock(arrayBlock);
-        // print(arrayBlock.GetUpperBound(0));
 
         Vector3[,] UpdatedInitArry = new Vector3[arrayBlock.GetUpperBound(0), arrayBlock.GetUpperBound(1) + 1];
 
@@ -110,6 +105,8 @@ public class CityGen : MonoBehaviour
         {
             for (int x = arrayBlock.GetUpperBound(0) + 1, xIndex = 0; x <= initalArray.GetUpperBound(0); x++, xIndex++)
             {
+                // Gizmos.color = Color.red;
+                // Gizmos.DrawSphere(initalArray[x, z], 0.5f);
                 UpdatedInitArry[xIndex, zIndex] = initalArray[x, z];
             }
         }
@@ -117,17 +114,26 @@ public class CityGen : MonoBehaviour
         listOfBlocks.Add(UpdatedInitArry);
 
 
+        for (int z = 0; z < arrayBlock.GetUpperBound(1) + 1; z++)
+        {
+            // Gizmos.color = Color.magenta;
+            // Gizmos.DrawSphere(initalArray[arrayBlock.GetUpperBound(0), z], 0.5f);
+            removeObject.Add(initalArray[arrayBlock.GetUpperBound(0), z]);
+        }
+
         CutHorizontal(arrayBlock);
     }
 
     void CutHorizontal(Vector3[,] initalArray)
     {
-        Vector3[,] arrayBlock = new Vector3[(width / 2) + 1, (height / 2) + 1];
+        Vector3[,] arrayBlock = new Vector3[initalArray.GetUpperBound(0) + 1, (initalArray.GetUpperBound(1) / 2) + 1];
 
         for (int z = 0; z <= initalArray.GetUpperBound(1) / 2 - 1; z++)
         {
             for (int x = 0; x <= initalArray.GetUpperBound(0); x++)
             {
+                // Gizmos.color = Color.blue;
+                // Gizmos.DrawSphere(initalArray[x, z], 0.5f);
                 arrayBlock[x, z] = initalArray[x, z];
             }
         }
@@ -135,18 +141,40 @@ public class CityGen : MonoBehaviour
         listOfBlocks.Add(arrayBlock);
 
 
-        Vector3[,] UpdatedInitArry = new Vector3[arrayBlock.GetUpperBound(0) + 1, arrayBlock.GetUpperBound(1) - 1];
+        Vector3[,] UpdatedInitArry = new Vector3[arrayBlock.GetUpperBound(0) + 1, arrayBlock.GetUpperBound(1) + 1];
+        print($"x: {UpdatedInitArry.GetUpperBound(0)}, z: {UpdatedInitArry.GetUpperBound(1)}");
 
-        // +2
-        for (int z = arrayBlock.GetUpperBound(0) + 2, zIndex = 0; z <= initalArray.GetUpperBound(1); z++, zIndex++)
+        for (int z = arrayBlock.GetUpperBound(0) + 1, zIndex = 0; z <= initalArray.GetUpperBound(1); z++, zIndex++)
 
         {
-            for (int x = 0, xIndex = 0; x <= arrayBlock.GetUpperBound(0); x++, xIndex++)
+            for (int x = 0, xIndex = 0; x <= arrayBlock.GetUpperBound(0) - 1; x++, xIndex++)
             {
+                // Gizmos.color = Color.yellow;
+                // Gizmos.DrawSphere(initalArray[x, z], 0.5f);
                 UpdatedInitArry[xIndex, zIndex] = initalArray[x, z];
             }
         }
 
+
+        for (int x = 0; x < arrayBlock.GetUpperBound(0) + 1; x++)
+        {
+            // Gizmos.color = Color.magenta;
+            // Gizmos.DrawSphere(initalArray[x, arrayBlock.GetUpperBound(1)], 0.5f);
+            removeObject.Add(initalArray[x, arrayBlock.GetUpperBound(1)]);
+        }
+
         listOfBlocks.Add(UpdatedInitArry);
     }
+
+
+    // private void OnDrawGizmos()
+    // {
+    //     foreach (var p in mapData)
+    //     {
+    //         Gizmos.color = Color.black;
+    //         Gizmos.DrawSphere(p, 0.5f);
+    //     }
+    //
+    //     CutVertical(mapData);
+    // }
 }
