@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NewBehaviourScript : MonoBehaviour
+public class CityGen : MonoBehaviour
 {
     [SerializeField] private int width, height;
 
     public Vector3[,] mapData;
 
     public List<Vector3[,]> listOfBlocks = new List<Vector3[,]>();
+
 
     public float sizePerArea;
     public float spacing;
@@ -29,18 +30,28 @@ public class NewBehaviourScript : MonoBehaviour
         height = (int) gameObject.transform.localScale.z;
 
         GenArray();
-        // CutVertical(mapData);
-        buildBlock(mapData);
+        CutVertical(mapData);
+        buildBlock();
+        // buildBlock(mapData);
     }
 
 
-    void buildBlock(Vector3[,] array)
+    void buildBlock()
     {
-        for (int z = 0; z <= array.GetUpperBound(1); z++)
+        // for (int z = 0; z <= array.GetUpperBound(1); z++)
+        // {
+        //     for (int x = 0; x <= array.GetUpperBound(0); x++)
+        //     {
+        //         var point = array[x, z];
+        //         var block = Instantiate(cube, point, Quaternion.identity);
+        //         block.transform.parent = gameObject.transform;
+        //     }
+        // }
+
+        foreach (var blocks in listOfBlocks)
         {
-            for (int x = 0; x <= array.GetUpperBound(0); x++)
+            foreach (var point in blocks)
             {
-                var point = array[x, z];
                 var block = Instantiate(cube, point, Quaternion.identity);
                 block.transform.parent = gameObject.transform;
             }
@@ -73,10 +84,21 @@ public class NewBehaviourScript : MonoBehaviour
             for (int x = 0; x <= initalArray.GetUpperBound(0) / 2 - 1; x++)
             {
                 arrayBlock[x, z] = initalArray[x, z];
-                listOfBlocks.Add(arrayBlock);
             }
         }
 
+        listOfBlocks.Add(arrayBlock);
+        //
+        // foreach (var point in arrayBlock)
+        // {
+        //     print($"ArrayBlock point: {point}");
+        // }
+        //
+        // foreach (var point in listOfBlocks[0])
+        // {
+        //     print($"ListBlock  point: {point}"); 
+        // }
+        // buildBlock(arrayBlock);
         // print(arrayBlock.GetUpperBound(0));
 
         Vector3[,] UpdatedInitArry = new Vector3[arrayBlock.GetUpperBound(0), arrayBlock.GetUpperBound(1) + 1];
@@ -89,15 +111,13 @@ public class NewBehaviourScript : MonoBehaviour
             for (int x = arrayBlock.GetUpperBound(0) + 1, xIndex = 0; x <= initalArray.GetUpperBound(0); x++, xIndex++)
             {
                 UpdatedInitArry[xIndex, zIndex] = initalArray[x, z];
-                listOfBlocks.Add(UpdatedInitArry);
             }
         }
 
-        // buildBlock(UpdatedInitArry);
-        // buildBlock(listOfBlocks[1]);
+        listOfBlocks.Add(UpdatedInitArry);
 
-     
-        // CutHorizontal(arrayBlock);
+
+        CutHorizontal(arrayBlock);
     }
 
     void CutHorizontal(Vector3[,] initalArray)
@@ -108,11 +128,12 @@ public class NewBehaviourScript : MonoBehaviour
         {
             for (int x = 0; x <= initalArray.GetUpperBound(0); x++)
             {
-                Gizmos.color = Color.yellow;
-                Gizmos.DrawSphere(mapData[x, z], 0.05f);
                 arrayBlock[x, z] = initalArray[x, z];
             }
         }
+
+        listOfBlocks.Add(arrayBlock);
+
 
         Vector3[,] UpdatedInitArry = new Vector3[arrayBlock.GetUpperBound(0) + 1, arrayBlock.GetUpperBound(1) - 1];
 
@@ -126,11 +147,6 @@ public class NewBehaviourScript : MonoBehaviour
             }
         }
 
-        foreach (var point in UpdatedInitArry)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawSphere(point, .05f);
-        }
+        listOfBlocks.Add(UpdatedInitArry);
     }
-
 }
