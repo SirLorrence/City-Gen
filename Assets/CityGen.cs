@@ -46,18 +46,16 @@ public class CityGen : MonoBehaviour
             {
                 if (!buildings.Contains(point))
                 {
-                    var block = Instantiate(cube, point, Quaternion.identity);
-                    buildings.Add(block.transform.position);
-                    block.transform.parent = gameObject.transform;
+                    if (!removeObject.Contains(point))
+                    {
+                        var block = Instantiate(cube, point, Quaternion.identity);
+                                            buildings.Add(block.transform.position);
+                                            block.transform.parent = gameObject.transform;
+                    }
+                        
                 }
             }
         }
-
-        foreach (var o in removeObject)
-        {
-            
-        }
-
 
         //destory overlapping building to create roads
     }
