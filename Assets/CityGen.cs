@@ -23,6 +23,7 @@ public class CityGen : MonoBehaviour
     private Vector3 right;
 
     public GameObject cube;
+    public GameObject road;
 
 
     // Start is called before the first frame update
@@ -39,6 +40,7 @@ public class CityGen : MonoBehaviour
 
     void buildBlock()
     {
+        print(removeObject[0]);
         //create blocks/neigbberhoods
         foreach (var blocks in listOfBlocks)
         {
@@ -54,6 +56,13 @@ public class CityGen : MonoBehaviour
                     }
                 }
             }
+        }
+
+        foreach (var point in removeObject)
+        {
+                  var block = Instantiate(road, point, Quaternion.identity);
+                        buildings.Add(block.transform.position);
+                        block.transform.parent = gameObject.transform;
         }
     }
 
@@ -128,7 +137,7 @@ public class CityGen : MonoBehaviour
             for (int x = 0; x <= initalArray.GetUpperBound(0); x++)
             {
                 // Gizmos.color = Color.blue;
-                // Gizmos.DrawSphere(initalArray[x, z], 0.5f);
+                // Gizmos.DrawSphere(initalArray[x, z], 0.05f);
                 arrayBlock[x, z] = initalArray[x, z];
             }
         }
@@ -145,16 +154,16 @@ public class CityGen : MonoBehaviour
             for (int x = 0, xIndex = 0; x <= arrayBlock.GetUpperBound(0) - 1; x++, xIndex++)
             {
                 // Gizmos.color = Color.yellow;
-                // Gizmos.DrawSphere(initalArray[x, z], 0.5f);
+                // Gizmos.DrawSphere(initalArray[x, z], 0.05f);
                 UpdatedInitArry[xIndex, zIndex] = initalArray[x, z];
             }
         }
 
 
-        for (int x = 0; x < arrayBlock.GetUpperBound(0) + 1; x++)
+        for (int x = 0; x < arrayBlock.GetUpperBound(0) ; x++)
         {
             // Gizmos.color = Color.magenta;
-            // Gizmos.DrawSphere(initalArray[x, arrayBlock.GetUpperBound(1)], 0.5f);
+            // Gizmos.DrawSphere(initalArray[x, arrayBlock.GetUpperBound(1)], 0.05f);
             removeObject.Add(initalArray[x, arrayBlock.GetUpperBound(1)]);
         }
 
@@ -162,14 +171,14 @@ public class CityGen : MonoBehaviour
     }
 
 
-    // private void OnDrawGizmos()
-    // {
-    //     foreach (var p in mapData)
-    //     {
-    //         Gizmos.color = Color.black;
-    //         Gizmos.DrawSphere(p, 0.5f);
-    //     }
-    //
-    //     CutVertical(mapData);
-    // }
+    private void OnDrawGizmos()
+    {
+        // foreach (var p in mapData)
+        // {
+        //     Gizmos.color = Color.black;
+        //     Gizmos.DrawSphere(p, 0.05f);
+        // }
+        //
+        // CutVertical(mapData);
+    }
 }
