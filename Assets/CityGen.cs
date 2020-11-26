@@ -10,13 +10,17 @@ using Random = UnityEngine.Random;
 
 public class CityGen : MonoBehaviour
 {
-    [SerializeField] private int width, height;
+    private int width, height;
 
     public Vector3[,] mapData;
 
-    public List<Vector3[,]> listOfBlocks = new List<Vector3[,]>();
-    public List<Vector3> buildings = new List<Vector3>();
+    private List<Vector3[,]> listOfBlocks = new List<Vector3[,]>();
+    private List<Vector3> buildingLocations = new List<Vector3>();
     private List<Vector3> removeObject = new List<Vector3>();
+
+    private List<GameObject> Buildings = new List<GameObject>();
+    private List<GameObject> Streets = new List<GameObject>();
+
 
     public float spacing;
     public int blockSize;
@@ -30,6 +34,8 @@ public class CityGen : MonoBehaviour
     public GameObject cube;
     public GameObject road;
 
+    public GameObject building_Holder;
+    public GameObject street_Holder;
 
     // Start is called before the first frame update
     void Start()
@@ -53,18 +59,11 @@ public class CityGen : MonoBehaviour
         List<Vector3[,]> Areas = new List<Vector3[,]>();
 
 
-        // splitList.AddRange(CutVertical(data));
-        // splitList.AddRange(CutVertical(data));
-
-
-        // splitList.AddRange(SplitDesicion(data));
-
         //init cut in half
 
         splitList.AddRange(SplitDesicion(data));
         aList.Add(splitList[0]);
         bList.Add(splitList[1]);
-        //
 
         for (int i = 0; i < blockSize; i++)
         {
@@ -101,11 +100,13 @@ public class CityGen : MonoBehaviour
         {
             case 0:
                 if (sizeData.GetUpperBound(0) % 2 == 0) itemList.AddRange(CutVertical(sizeData));
-                else print("Data V is to small");
+                else if (sizeData.GetUpperBound(1) % 2 == 0) itemList.AddRange(CutHorizontal(sizeData));
+                else print("Data size is to small to partition");
                 break;
             case 1:
                 if (sizeData.GetUpperBound(1) % 2 == 0) itemList.AddRange(CutHorizontal(sizeData));
-                else print("Data H is to small");
+                else if (sizeData.GetUpperBound(0) % 2 == 0) itemList.AddRange(CutVertical(sizeData));
+                else print("Data size is to small to partition");
                 break;
         }
 
@@ -222,8 +223,9 @@ public class CityGen : MonoBehaviour
         {
             if (point.z == 0 || point.x == 0 || point.z == height || point.x == width)
             {
-                Instantiate(road, point, Quaternion.identity);
+                var block = Instantiate(road, point, Quaternion.identity);
                 Boarder.Add(point);
+                Streets.Add(block);
             }
         }
 
@@ -232,13 +234,15 @@ public class CityGen : MonoBehaviour
         {
             foreach (var point in blocks)
             {
-                if (!buildings.Contains(point) && !Boarder.Contains(point))
+                if (!buildingLocations.Contains(point) && !Boarder.Contains(point))
                 {
                     if (!removeObject.Contains(point))
                     {
                         var block = Instantiate(cube, point, Quaternion.identity);
-                        buildings.Add(block.transform.position);
-                        block.transform.parent = gameObject.transform;
+                        buildingLocations.Add(block.transform.position);
+                        
+                        Buildings.Add(block);
+                        // block.transform.parent = building_Holder.gameObject.transform;
                     }
                 }
 
@@ -254,24 +258,18 @@ public class CityGen : MonoBehaviour
         foreach (var point in removeObject)
         {
             var block = Instantiate(road, point, Quaternion.identity);
-            // buildings.Add(block.transform.position);
-            block.transform.parent = gameObject.transform;
+            Streets.Add(block);
         }
 
-
-        // for (int z = 0; z < mapData.GetUpperBound(1); z++)
-        // {
-        //     for (int x = 0; x < mapData.GetUpperBound(0); x++)
-        //     {
-        //         if (mapData[x,z].)
-        //         {
-        //             var point = new Vector3(x, 0, z);
-        //             var block = Instantiate(road, point, Quaternion.identity);
-        //             buildings.Add(block.transform.position);
-        //         }
-        //     }
-        // }
-        //
+        foreach (var building in Buildings)
+        {
+            building.transform.parent = building_Holder.transform;
+        }
+        
+        foreach (var street in Streets)
+        {
+            street.transform.parent = street_Holder.transform;
+        }
     }
 
     void GenArray()
