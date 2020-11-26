@@ -56,23 +56,24 @@ public class CityGen : MonoBehaviour
 
 
         // splitList.AddRange(SplitDesicion(data));
-
+        
         //init cut in half
         aList.Add(splitList[0]);
         bList.Add(splitList[1]);
-
+        //
         splitList.AddRange(CutHorizontal(aList[0]));
         splitList.AddRange(CutHorizontal(bList[0]));
-
-
+        
+        
         aList.Add(splitList[2]);
         bList.Add(splitList[3]);
+        
         splitList.AddRange(CutHorizontal(aList[1]));
         splitList.AddRange(CutHorizontal(bList[1]));
         
         aList.Add(splitList[4]);
         bList.Add(splitList[5]);
-
+        //
         Areas.AddRange(aList);
         Areas.AddRange(bList);
 
@@ -162,11 +163,11 @@ public class CityGen : MonoBehaviour
 
         itemList.Add(arrayBlock);
 
-        Vector3[,] UpdatedInitArry = new Vector3[arrayBlock.GetUpperBound(0) + 1, arrayBlock.GetUpperBound(1) + 1];
+        Vector3[,] UpdatedInitArry = new Vector3[initalArray.GetUpperBound(0) + 1, initalArray.GetUpperBound(1) + 1];
         // print($"x: {UpdatedInitArry.GetUpperBound(0)}, z: {UpdatedInitArry.GetUpperBound(1)}");
 
 
-        for (int z = arrayBlock.GetUpperBound(0) + 1, zIndex = 0; z <= initalArray.GetUpperBound(1); z++, zIndex++)
+        for (int z = 0 + 1, zIndex = 0; z <= initalArray.GetUpperBound(1); z++, zIndex++)
 
         {
             for (int x = 0, xIndex = 0; x <= arrayBlock.GetUpperBound(0); x++, xIndex++)
