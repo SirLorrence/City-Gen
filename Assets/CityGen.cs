@@ -229,7 +229,7 @@ public class CityGen : MonoBehaviour
             }
         }
 
-        //create blocks/neigbberhoods
+        //create blocks/neigbberhoods/buildings
         foreach (var blocks in listOfBlocks)
         {
             foreach (var point in blocks)
@@ -238,22 +238,26 @@ public class CityGen : MonoBehaviour
                 {
                     if (!removeObject.Contains(point))
                     {
-                        var block = Instantiate(cube, point, Quaternion.identity);
-                        buildingLocations.Add(block.transform.position);
-                        
-                        Buildings.Add(block);
-                        // block.transform.parent = building_Holder.gameObject.transform;
+                        buildingLocations.Add(point);
                     }
                 }
-
-                // else
-                // {
-                //     var block = Instantiate(road, point, Quaternion.identity);
-                //     block.transform.parent = gameObject.transform;
-                // }
             }
         }
 
+        for (int i = 0; i < buildingLocations.Count; i++)
+        {
+            var temp = buildingLocations[i];
+            var y = (cube.transform.localScale.y / 2);
+            var setLevel = new Vector3(temp.x, y ,temp.z );
+            buildingLocations[i] = setLevel;
+        }
+
+
+        foreach (var buildingLocation in buildingLocations)
+        {
+            var block = Instantiate(cube, buildingLocation, Quaternion.identity);
+            Buildings.Add(block);
+        }
         //Remove objects will become Roads & Streets
         foreach (var point in removeObject)
         {
