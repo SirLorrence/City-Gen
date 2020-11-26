@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
 using PointerType = UnityEngine.PointerType;
@@ -53,27 +54,37 @@ public class CityGen : MonoBehaviour
 
 
         // splitList.AddRange(CutVertical(data));
-        splitList.AddRange(CutHorizontal(data));
+        // splitList.AddRange(CutVertical(data));
 
 
         // splitList.AddRange(SplitDesicion(data));
 
         //init cut in half
+
+        splitList.AddRange(SplitDesicion(data));
         aList.Add(splitList[0]);
         bList.Add(splitList[1]);
         //
-        splitList.AddRange(CutHorizontal(aList[0]));
-        splitList.AddRange(CutHorizontal(bList[0]));
 
-        //
-        aList.Add(splitList[2]);
-        bList.Add(splitList[3]);
-        //
-        splitList.AddRange(CutVertical(aList[1]));
-        splitList.AddRange(CutVertical(bList[1]));
-        //
-        aList.Add(splitList[4]);
-        bList.Add(splitList[5]);
+        for (int i = 0; i < blockSize; i++)
+        {
+            splitList.Clear();
+            var listHolder = SplitDesicion(aList[i]);
+            if (listHolder != null) splitList.AddRange(listHolder);
+            else break;
+            aList.Add(splitList[0]);
+            aList.Add(splitList[1]);
+        }
+
+        for (int i = 0; i < blockSize; i++)
+        {
+            splitList.Clear();
+            var listHolder = SplitDesicion(bList[i]);
+            if (listHolder != null) splitList.AddRange(listHolder);
+            else break;
+            bList.Add(splitList[0]);
+            bList.Add(splitList[1]);
+        }
 
         Areas.AddRange(aList);
         Areas.AddRange(bList);
@@ -90,10 +101,18 @@ public class CityGen : MonoBehaviour
         {
             case 0:
                 if (sizeData.GetUpperBound(0) % 2 == 0) itemList.AddRange(CutVertical(sizeData));
+                else print("Data V is to small");
                 break;
             case 1:
                 if (sizeData.GetUpperBound(1) % 2 == 0) itemList.AddRange(CutHorizontal(sizeData));
+                else print("Data H is to small");
                 break;
+        }
+
+        if (!itemList.Any())
+        {
+            print("itemlist return null");
+            return null;
         }
 
         return itemList;
@@ -197,7 +216,7 @@ public class CityGen : MonoBehaviour
     {
         //Create RoadBoarder
 
-        List<Vector3> Boarder = new List<Vector3>(); 
+        List<Vector3> Boarder = new List<Vector3>();
 
         foreach (var point in mapData)
         {
