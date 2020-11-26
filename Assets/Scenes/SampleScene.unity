@@ -329,6 +329,7 @@ MonoBehaviour:
   height: 0
   buildings: []
   spacing: 0
+  blockSize: 5
   cube: {fileID: 2444963885507301536, guid: 83c984152b0f46f48ac35a23184fa3be, type: 3}
   road: {fileID: 8451457998272108263, guid: 8d8668268d4b9394781c10f6f5241db7, type: 3}
 --- !u!4 &1136434550
