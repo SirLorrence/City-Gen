@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using PointerType = UnityEngine.PointerType;
 using Random = UnityEngine.Random;
 
 public class CityGen : MonoBehaviour
@@ -51,29 +52,29 @@ public class CityGen : MonoBehaviour
         List<Vector3[,]> Areas = new List<Vector3[,]>();
 
 
-        splitList.AddRange(CutVertical(data));
-        // splitList.AddRange(CutHorizontal(data));
+        // splitList.AddRange(CutVertical(data));
+        splitList.AddRange(CutHorizontal(data));
 
 
         // splitList.AddRange(SplitDesicion(data));
-        
+
         //init cut in half
         aList.Add(splitList[0]);
         bList.Add(splitList[1]);
         //
         splitList.AddRange(CutHorizontal(aList[0]));
         splitList.AddRange(CutHorizontal(bList[0]));
-        
-        
+
+        //
         aList.Add(splitList[2]);
         bList.Add(splitList[3]);
-        
-        splitList.AddRange(CutHorizontal(aList[1]));
-        splitList.AddRange(CutHorizontal(bList[1]));
-        
+        //
+        splitList.AddRange(CutVertical(aList[1]));
+        splitList.AddRange(CutVertical(bList[1]));
+        //
         aList.Add(splitList[4]);
         bList.Add(splitList[5]);
-        //
+
         Areas.AddRange(aList);
         Areas.AddRange(bList);
 
@@ -163,11 +164,11 @@ public class CityGen : MonoBehaviour
 
         itemList.Add(arrayBlock);
 
-        Vector3[,] UpdatedInitArry = new Vector3[initalArray.GetUpperBound(0) + 1, initalArray.GetUpperBound(1) + 1];
+        Vector3[,] UpdatedInitArry = new Vector3[arrayBlock.GetUpperBound(0) + 1, arrayBlock.GetUpperBound(1) + 1];
         // print($"x: {UpdatedInitArry.GetUpperBound(0)}, z: {UpdatedInitArry.GetUpperBound(1)}");
 
 
-        for (int z = 0 + 1, zIndex = 0; z <= initalArray.GetUpperBound(1); z++, zIndex++)
+        for (int z = arrayBlock.GetUpperBound(1) + 1, zIndex = 0; z <= initalArray.GetUpperBound(1); z++, zIndex++)
 
         {
             for (int x = 0, xIndex = 0; x <= arrayBlock.GetUpperBound(0); x++, xIndex++)
@@ -194,12 +195,25 @@ public class CityGen : MonoBehaviour
 
     void BuildMap()
     {
+        //Create RoadBoarder
+
+        List<Vector3> Boarder = new List<Vector3>(); 
+
+        foreach (var point in mapData)
+        {
+            if (point.z == 0 || point.x == 0 || point.z == height || point.x == width)
+            {
+                Instantiate(road, point, Quaternion.identity);
+                Boarder.Add(point);
+            }
+        }
+
         //create blocks/neigbberhoods
         foreach (var blocks in listOfBlocks)
         {
             foreach (var point in blocks)
             {
-                if (!buildings.Contains(point))
+                if (!buildings.Contains(point) && !Boarder.Contains(point))
                 {
                     if (!removeObject.Contains(point))
                     {
@@ -208,6 +222,12 @@ public class CityGen : MonoBehaviour
                         block.transform.parent = gameObject.transform;
                     }
                 }
+
+                // else
+                // {
+                //     var block = Instantiate(road, point, Quaternion.identity);
+                //     block.transform.parent = gameObject.transform;
+                // }
             }
         }
 
@@ -215,9 +235,24 @@ public class CityGen : MonoBehaviour
         foreach (var point in removeObject)
         {
             var block = Instantiate(road, point, Quaternion.identity);
-            buildings.Add(block.transform.position);
+            // buildings.Add(block.transform.position);
             block.transform.parent = gameObject.transform;
         }
+
+
+        // for (int z = 0; z < mapData.GetUpperBound(1); z++)
+        // {
+        //     for (int x = 0; x < mapData.GetUpperBound(0); x++)
+        //     {
+        //         if (mapData[x,z].)
+        //         {
+        //             var point = new Vector3(x, 0, z);
+        //             var block = Instantiate(road, point, Quaternion.identity);
+        //             buildings.Add(block.transform.position);
+        //         }
+        //     }
+        // }
+        //
     }
 
     void GenArray()
