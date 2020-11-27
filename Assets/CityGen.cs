@@ -10,9 +10,21 @@ using Random = UnityEngine.Random;
 
 public class CityGen : MonoBehaviour
 {
-    private int width, height;
+    /*--------------------------------------------
+     the optimal chunks size is 10 - 20 
+     to have diverse blocks
+    --------------------------------------------*/
+    [SerializeField] private int width, height;
 
     public Vector3[,] mapData;
+    public Vector3[,] mapData2;
+    private Vector3[,] mapData3;
+    private Vector3[,] mapData4;
+
+
+    private List<Vector3[,]> cityData = new List<Vector3[,]>();
+    [SerializeField] private int heightSizeData;
+    [SerializeField] private int widthSizeData;
 
     private List<Vector3[,]> listOfBlocks = new List<Vector3[,]>();
     private List<Vector3> buildingLocations = new List<Vector3>();
@@ -22,7 +34,6 @@ public class CityGen : MonoBehaviour
     private List<GameObject> Streets = new List<GameObject>();
 
 
-    public float spacing;
     public int blockSize;
 
 
@@ -37,20 +48,23 @@ public class CityGen : MonoBehaviour
     public GameObject building_Holder;
     public GameObject street_Holder;
 
+
     // Start is called before the first frame update
     void Start()
     {
-        width = (int) gameObject.transform.localScale.x;
-        height = (int) gameObject.transform.localScale.z;
+        // width = (int) gameObject.transform.localScale.x;
+        // height = (int) gameObject.transform.localScale.z;
 
         GenArray();
-        listOfBlocks = CreateSpacePartitioning(mapData, blockSize);
+        listOfBlocks.AddRange(CreateSpacePartitioning(mapData));
+        listOfBlocks.AddRange(CreateSpacePartitioning(mapData2));
+        listOfBlocks.AddRange(CreateSpacePartitioning(mapData3));
+        listOfBlocks.AddRange(CreateSpacePartitioning(mapData4));
         // CutVertical(mapData);
         BuildMap();
     }
 
-
-    List<Vector3[,]> CreateSpacePartitioning(Vector3[,] data, int areaSize)
+    List<Vector3[,]> CreateSpacePartitioning(Vector3[,] data)
     {
         List<Vector3[,]> aList = new List<Vector3[,]>();
         List<Vector3[,]> bList = new List<Vector3[,]>();
@@ -112,7 +126,7 @@ public class CityGen : MonoBehaviour
 
         if (!itemList.Any())
         {
-            print("itemlist return null");
+            print("item-list return null");
             return null;
         }
 
@@ -217,15 +231,25 @@ public class CityGen : MonoBehaviour
     {
         //Create RoadBoarder
 
-        List<Vector3> Boarder = new List<Vector3>();
+        List<Vector3> streetLocations = new List<Vector3>();
 
-        foreach (var point in mapData)
+        foreach (var chunk in cityData)
         {
-            if (point.z == 0 || point.x == 0 || point.z == height || point.x == width)
+            foreach (var point in chunk)
             {
-                var block = Instantiate(road, point, Quaternion.identity);
-                Boarder.Add(point);
-                Streets.Add(block);
+                if (point.z == 0 || point.x == 0 || point.z == heightSizeData || point.x == widthSizeData)
+                {
+                    var block = Instantiate(road, point, Quaternion.identity);
+                    streetLocations.Add(point);
+                    Streets.Add(block);
+                }
+                
+                if(point.x == width || point.z == height)
+                {
+                    var block = Instantiate(road, point, Quaternion.identity);
+                    streetLocations.Add(point);
+                    Streets.Add(block);
+                }
             }
         }
 
@@ -234,7 +258,7 @@ public class CityGen : MonoBehaviour
         {
             foreach (var point in blocks)
             {
-                if (!buildingLocations.Contains(point) && !Boarder.Contains(point))
+                if (!buildingLocations.Contains(point) && !streetLocations.Contains(point))
                 {
                     if (!removeObject.Contains(point))
                     {
@@ -248,7 +272,7 @@ public class CityGen : MonoBehaviour
         {
             var temp = buildingLocations[i];
             var y = (cube.transform.localScale.y / 2);
-            var setLevel = new Vector3(temp.x, y ,temp.z );
+            var setLevel = new Vector3(temp.x, y, temp.z);
             buildingLocations[i] = setLevel;
         }
 
@@ -258,6 +282,7 @@ public class CityGen : MonoBehaviour
             var block = Instantiate(cube, buildingLocation, Quaternion.identity);
             Buildings.Add(block);
         }
+
         //Remove objects will become Roads & Streets
         foreach (var point in removeObject)
         {
@@ -269,7 +294,7 @@ public class CityGen : MonoBehaviour
         {
             building.transform.parent = building_Holder.transform;
         }
-        
+
         foreach (var street in Streets)
         {
             street.transform.parent = street_Holder.transform;
@@ -279,116 +304,76 @@ public class CityGen : MonoBehaviour
     void GenArray()
     {
         mapData = new Vector3[width + 1, height + 1];
-        float ySpace = 0;
-        float xSpace = 0;
-        for (int y = 0, i = 0; y <= height; y++, ySpace += spacing)
+        for (int y = 0; y <= height; y++)
         {
-            for (int x = 0; x <= width; x++, i++, xSpace += spacing)
+            for (int x = 0; x <= width; x++)
             {
-                mapData[x, y] = new Vector3(x + xSpace, 0, y + ySpace);
+                mapData[x, y] = new Vector3(x, 0, y);
             }
-
-            xSpace = 0;
         }
+
+        mapData2 = new Vector3[width + 1, height + 1];
+        for (int y = 0; y <= height; y++)
+        {
+            for (int x = 0; x <= width; x++)
+            {
+                mapData2[x, y] = new Vector3(x + mapData.GetUpperBound(0), 0, y);
+            }
+        }
+
+        mapData3 = new Vector3[width + 1, height + 1];
+        for (int y = 0; y <= height; y++)
+        {
+            for (int x = 0; x <= width; x++)
+            {
+                mapData3[x, y] = new Vector3(x, 0, y + mapData.GetUpperBound(1));
+            }
+        }
+
+        mapData4 = new Vector3[width + 1, height + 1];
+        for (int y = 0; y <= height; y++)
+        {
+            for (int x = 0; x <= width; x++)
+            {
+                mapData4[x, y] = new Vector3(x + mapData.GetUpperBound(0), 0, y + mapData.GetUpperBound(1));
+            }
+        }
+
+        cityData.Add(mapData);
+        cityData.Add(mapData2);
+        cityData.Add(mapData3);
+        cityData.Add(mapData4);
+
+        heightSizeData = height * 2;
+        widthSizeData = width * 2;
     }
 
-
-    // void CutVertical(Vector3[,] initalArray)
-    // {
-    //     Vector3[,] arrayBlock = new Vector3[(initalArray.GetUpperBound(0) / 2) + 1, initalArray.GetUpperBound(1) + 1];
-    //
-    //     for (int z = 0; z <= initalArray.GetUpperBound(1); z++)
-    //     {
-    //         for (int x = 0; x <= initalArray.GetUpperBound(0) / 2 - 1; x++)
-    //         {
-    //             // Gizmos.color = Color.green;
-    //             // Gizmos.DrawSphere(initalArray[x, z], 0.5f);
-    //             arrayBlock[x, z] = initalArray[x, z];
-    //         }
-    //     }
-    //
-    //     listOfBlocks.Add(arrayBlock);
-    //     //
-    //
-    //     Vector3[,] UpdatedInitArry = new Vector3[arrayBlock.GetUpperBound(0), arrayBlock.GetUpperBound(1) + 1];
-    //
-    //     // print($"Updated Init array Size x:{UpdatedInitArry.GetUpperBound(0)} z: {UpdatedInitArry.GetUpperBound(1)}");
-    //
-    //     for (int z = 0, zIndex = 0; z <= arrayBlock.GetUpperBound(1); z++, zIndex++)
-    //
-    //     {
-    //         for (int x = arrayBlock.GetUpperBound(0) + 1, xIndex = 0; x <= initalArray.GetUpperBound(0); x++, xIndex++)
-    //         {
-    //             // Gizmos.color = Color.red;
-    //             // Gizmos.DrawSphere(initalArray[x, z], 0.5f);
-    //             UpdatedInitArry[xIndex, zIndex] = initalArray[x, z];
-    //         }
-    //     }
-    //
-    //     listOfBlocks.Add(UpdatedInitArry);
-    //
-    //
-    //     for (int z = 0; z < arrayBlock.GetUpperBound(1) + 1; z++)
-    //     {
-    //         // Gizmos.color = Color.magenta;
-    //         // Gizmos.DrawSphere(initalArray[arrayBlock.GetUpperBound(0), z], 0.5f);
-    //         removeObject.Add(initalArray[arrayBlock.GetUpperBound(0), z]);
-    //     }
-    //
-    //     // CutHorizontal(arrayBlock);
-    // }
-
-    // void CutHorizontal(Vector3[,] initalArray)
-    // {
-    //     Vector3[,] arrayBlock = new Vector3[initalArray.GetUpperBound(0) + 1, (initalArray.GetUpperBound(1) / 2) + 1];
-    //
-    //     for (int z = 0; z <= initalArray.GetUpperBound(1) / 2 - 1; z++)
-    //     {
-    //         for (int x = 0; x <= initalArray.GetUpperBound(0); x++)
-    //         {
-    //             // Gizmos.color = Color.blue;
-    //             // Gizmos.DrawSphere(initalArray[x, z], 0.05f);
-    //             arrayBlock[x, z] = initalArray[x, z];
-    //         }
-    //     }
-    //
-    //     listOfBlocks.Add(arrayBlock);
-    //
-    //
-    //     Vector3[,] UpdatedInitArry = new Vector3[arrayBlock.GetUpperBound(0) + 1, arrayBlock.GetUpperBound(1) + 1];
-    //     print($"x: {UpdatedInitArry.GetUpperBound(0)}, z: {UpdatedInitArry.GetUpperBound(1)}");
-    //
-    //     for (int z = arrayBlock.GetUpperBound(0) + 1, zIndex = 0; z <= initalArray.GetUpperBound(1); z++, zIndex++)
-    //
-    //     {
-    //         for (int x = 0, xIndex = 0; x <= arrayBlock.GetUpperBound(0) - 1; x++, xIndex++)
-    //         {
-    //             // Gizmos.color = Color.yellow;
-    //             // Gizmos.DrawSphere(initalArray[x, z], 0.05f);
-    //             UpdatedInitArry[xIndex, zIndex] = initalArray[x, z];
-    //         }
-    //     }
-    //
-    //
-    //     for (int x = 0; x < arrayBlock.GetUpperBound(0); x++)
-    //     {
-    //         // Gizmos.color = Color.magenta;
-    //         // Gizmos.DrawSphere(initalArray[x, arrayBlock.GetUpperBound(1)], 0.05f);
-    //         removeObject.Add(initalArray[x, arrayBlock.GetUpperBound(1)]);
-    //     }
-    //
-    //     listOfBlocks.Add(UpdatedInitArry);
-    // }
-
-    //
     // private void OnDrawGizmos()
     // {
     //     foreach (var p in mapData)
     //     {
-    //         Gizmos.color = Color.black;
+    //         Gizmos.color = Color.blue;
     //         Gizmos.DrawSphere(p, 0.05f);
     //     }
     //
-    //     CutHorizontal(mapData);
+    //
+    //     foreach (var p in mapData2)
+    //     {
+    //         Gizmos.color = Color.green;
+    //         Gizmos.DrawSphere(p, 0.05f);
+    //     }
+    //
+    //     foreach (var p in mapData3)
+    //     {
+    //         Gizmos.color = Color.red;
+    //         Gizmos.DrawSphere(p, 0.05f);
+    //     }
+    //
+    //
+    //     foreach (var p in mapData4)
+    //     {
+    //         Gizmos.color = Color.black;
+    //         Gizmos.DrawSphere(p, 0.05f);
+    //     }
     // }
 }

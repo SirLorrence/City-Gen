@@ -385,7 +385,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2937c4e5f78bb3640ba2b329b8405247, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spacing: 0
+  width: 20
+  height: 20
+  heightSizeData: 0
+  widthSizeData: 0
   blockSize: 5
   cube: {fileID: 2444963885507301536, guid: 83c984152b0f46f48ac35a23184fa3be, type: 3}
   road: {fileID: 8451457998272108263, guid: 8d8668268d4b9394781c10f6f5241db7, type: 3}
@@ -400,7 +403,7 @@ Transform:
   m_GameObject: {fileID: 1136434548}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 20, y: 1, z: 20}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 985473914}
   - {fileID: 460130402}
