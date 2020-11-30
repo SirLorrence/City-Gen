@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using PointerType = UnityEngine.PointerType;
 using Random = UnityEngine.Random;
@@ -16,15 +17,15 @@ public class CityGen : MonoBehaviour
     --------------------------------------------*/
     [SerializeField] private int width, height;
 
-    public Vector3[,] mapData;
+    public Vector3[,] mapData; // init data
     public Vector3[,] mapData2;
     private Vector3[,] mapData3;
     private Vector3[,] mapData4;
 
 
     private List<Vector3[,]> cityData = new List<Vector3[,]>();
-    [SerializeField] private int heightSizeData;
-    [SerializeField] private int widthSizeData;
+    private int heightSizeData;
+    private int widthSizeData;
 
     private List<Vector3[,]> listOfBlocks = new List<Vector3[,]>();
     private List<Vector3> buildingLocations = new List<Vector3>();
@@ -33,8 +34,7 @@ public class CityGen : MonoBehaviour
     private List<GameObject> Buildings = new List<GameObject>();
     private List<GameObject> Streets = new List<GameObject>();
 
-
-    public int blockSize;
+    public int sliceAmount;
 
 
     private Vector3 top;
@@ -42,7 +42,8 @@ public class CityGen : MonoBehaviour
     private Vector3 left;
     private Vector3 right;
 
-    public GameObject cube;
+    public GameObject smallBuilding;
+    public GameObject largeBuilding;
     public GameObject road;
 
     public GameObject building_Holder;
@@ -52,22 +53,26 @@ public class CityGen : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // width = (int) gameObject.transform.localScale.x;
-        // height = (int) gameObject.transform.localScale.z;
+        StartCoroutine(CreateCityScape());
+    }
 
+
+    IEnumerator CreateCityScape()
+    {
         GenArray();
         listOfBlocks.AddRange(CreateSpacePartitioning(mapData));
         listOfBlocks.AddRange(CreateSpacePartitioning(mapData2));
         listOfBlocks.AddRange(CreateSpacePartitioning(mapData3));
         listOfBlocks.AddRange(CreateSpacePartitioning(mapData4));
-        // CutVertical(mapData);
         BuildMap();
+        yield return null;
     }
 
     List<Vector3[,]> CreateSpacePartitioning(Vector3[,] data)
     {
         List<Vector3[,]> aList = new List<Vector3[,]>();
         List<Vector3[,]> bList = new List<Vector3[,]>();
+
         List<Vector3[,]> splitList = new List<Vector3[,]>();
 
         List<Vector3[,]> Areas = new List<Vector3[,]>();
@@ -79,7 +84,7 @@ public class CityGen : MonoBehaviour
         aList.Add(splitList[0]);
         bList.Add(splitList[1]);
 
-        for (int i = 0; i < blockSize; i++)
+        for (int i = 0; i < sliceAmount; i++)
         {
             splitList.Clear();
             var listHolder = SplitDesicion(aList[i]);
@@ -89,7 +94,7 @@ public class CityGen : MonoBehaviour
             aList.Add(splitList[1]);
         }
 
-        for (int i = 0; i < blockSize; i++)
+        for (int i = 0; i < sliceAmount; i++)
         {
             splitList.Clear();
             var listHolder = SplitDesicion(bList[i]);
@@ -243,8 +248,8 @@ public class CityGen : MonoBehaviour
                     streetLocations.Add(point);
                     Streets.Add(block);
                 }
-                
-                if(point.x == width || point.z == height)
+
+                if (point.x == width || point.z == height)
                 {
                     var block = Instantiate(road, point, Quaternion.identity);
                     streetLocations.Add(point);
@@ -271,7 +276,7 @@ public class CityGen : MonoBehaviour
         for (int i = 0; i < buildingLocations.Count; i++)
         {
             var temp = buildingLocations[i];
-            var y = (cube.transform.localScale.y / 2);
+            var y = (smallBuilding.transform.localScale.y / 2);
             var setLevel = new Vector3(temp.x, y, temp.z);
             buildingLocations[i] = setLevel;
         }
@@ -279,7 +284,13 @@ public class CityGen : MonoBehaviour
 
         foreach (var buildingLocation in buildingLocations)
         {
-            var block = Instantiate(cube, buildingLocation, Quaternion.identity);
+            var randomBuilding = Random.Range(1, 11);
+            GameObject block;
+            
+            if (randomBuilding > 5) block = Instantiate(largeBuilding, buildingLocation, Quaternion.identity);
+            else block = Instantiate(smallBuilding, buildingLocation, Quaternion.identity);
+           
+            print(randomBuilding);
             Buildings.Add(block);
         }
 

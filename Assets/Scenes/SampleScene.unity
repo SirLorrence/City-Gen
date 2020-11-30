@@ -387,10 +387,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 20
   height: 20
-  heightSizeData: 0
-  widthSizeData: 0
-  blockSize: 5
-  cube: {fileID: 2444963885507301536, guid: 83c984152b0f46f48ac35a23184fa3be, type: 3}
+  sliceAmount: 5
+  smallBuilding: {fileID: 2444963885507301536, guid: 83c984152b0f46f48ac35a23184fa3be,
+    type: 3}
+  largeBuilding: {fileID: 1427747620062736425, guid: 2f1d5d23f6111674b917bfbda9e3473a,
+    type: 3}
   road: {fileID: 8451457998272108263, guid: 8d8668268d4b9394781c10f6f5241db7, type: 3}
   building_Holder: {fileID: 985473913}
   street_Holder: {fileID: 460130401}
