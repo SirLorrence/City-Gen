@@ -12,58 +12,45 @@ using Random = UnityEngine.Random;
 public class CityGen : MonoBehaviour
 {
     /*--------------------------------------------
-     the optimal chunks size is 10 - 20 
+     the optimal chunks size is 10 - 20 - 40
      to have diverse blocks
     --------------------------------------------*/
-    [SerializeField] private int width, height;
+    [SerializeField] private int width, length;
+    public GameObject building_Holder;
+    public int boarder;
 
     public Vector3[,] mapData; // init data
-    public Vector3[,] mapData2;
-    private Vector3[,] mapData3;
-    private Vector3[,] mapData4;
 
-
-    private List<Vector3[,]> cityData = new List<Vector3[,]>();
-    private int heightSizeData;
-    private int widthSizeData;
-
-    private List<Vector3[,]> listOfBlocks = new List<Vector3[,]>();
+    private List<Vector3[,]> streetBlocks = new List<Vector3[,]>();
     private List<Vector3> buildingLocations = new List<Vector3>();
     private List<Vector3> removeObject = new List<Vector3>();
 
     private List<GameObject> Buildings = new List<GameObject>();
-    private List<GameObject> Streets = new List<GameObject>();
 
-    public int sliceAmount;
+    private int sliceAmount = 5;
+    public float tileSpacing = 2;
 
-
-    private Vector3 top;
-    private Vector3 bottom;
-    private Vector3 left;
-    private Vector3 right;
-
-    public GameObject smallBuilding;
-    public GameObject largeBuilding;
+    public List<GameObject> buildingsList;
     public GameObject road;
 
-    public GameObject building_Holder;
-    public GameObject street_Holder;
-
+    private Mesh ground;
+    private void Awake() => ground = GetComponent<MeshFilter>().mesh;
 
     // Start is called before the first frame update
-    void Start()
-    {
-        StartCoroutine(CreateCityScape());
-    }
+    void Start() => StartCoroutine(CreateCityScape());
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(0);
+        }
+    }
 
     IEnumerator CreateCityScape()
     {
         GenArray();
-        listOfBlocks.AddRange(CreateSpacePartitioning(mapData));
-        listOfBlocks.AddRange(CreateSpacePartitioning(mapData2));
-        listOfBlocks.AddRange(CreateSpacePartitioning(mapData3));
-        listOfBlocks.AddRange(CreateSpacePartitioning(mapData4));
+        streetBlocks.AddRange(CreateSpacePartitioning(mapData));
         BuildMap();
         yield return null;
     }
@@ -75,7 +62,7 @@ public class CityGen : MonoBehaviour
 
         List<Vector3[,]> splitList = new List<Vector3[,]>();
 
-        List<Vector3[,]> Areas = new List<Vector3[,]>();
+        List<Vector3[,]> areas = new List<Vector3[,]>();
 
 
         //init cut in half
@@ -104,10 +91,10 @@ public class CityGen : MonoBehaviour
             bList.Add(splitList[1]);
         }
 
-        Areas.AddRange(aList);
-        Areas.AddRange(bList);
+        areas.AddRange(aList);
+        areas.AddRange(bList);
 
-        return Areas;
+        return areas;
     }
 
     List<Vector3[,]> SplitDesicion(Vector3[,] sizeData)
@@ -182,6 +169,7 @@ public class CityGen : MonoBehaviour
             removeObject.Add(initalArray[arrayBlock.GetUpperBound(0), z]);
         }
 
+
         return itemList;
     }
 
@@ -221,7 +209,6 @@ public class CityGen : MonoBehaviour
         }
 
         itemList.Add(UpdatedInitArry);
-
         for (int x = 0; x < arrayBlock.GetUpperBound(0) + 1; x++)
         {
             // Gizmos.color = Color.magenta;
@@ -238,28 +225,13 @@ public class CityGen : MonoBehaviour
 
         List<Vector3> streetLocations = new List<Vector3>();
 
-        foreach (var chunk in cityData)
+        foreach (var point in mapData)
         {
-            foreach (var point in chunk)
-            {
-                if (point.z == 0 || point.x == 0 || point.z == heightSizeData || point.x == widthSizeData)
-                {
-                    var block = Instantiate(road, point, Quaternion.identity);
-                    streetLocations.Add(point);
-                    Streets.Add(block);
-                }
-
-                if (point.x == width || point.z == height)
-                {
-                    var block = Instantiate(road, point, Quaternion.identity);
-                    streetLocations.Add(point);
-                    Streets.Add(block);
-                }
-            }
+            if (point.z == 0 || point.x == 0 || point.z == length || point.x == width) streetLocations.Add(point);
         }
 
         //create blocks/neigbberhoods/buildings
-        foreach (var blocks in listOfBlocks)
+        foreach (var blocks in streetBlocks)
         {
             foreach (var point in blocks)
             {
@@ -273,117 +245,69 @@ public class CityGen : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < buildingLocations.Count; i++)
-        {
-            var temp = buildingLocations[i];
-            var y = (smallBuilding.transform.localScale.y / 2);
-            var setLevel = new Vector3(temp.x, y, temp.z);
-            buildingLocations[i] = setLevel;
-        }
-
-
         foreach (var buildingLocation in buildingLocations)
         {
-            var randomBuilding = Random.Range(1, 11);
-            GameObject block;
-            
-            if (randomBuilding > 5) block = Instantiate(largeBuilding, buildingLocation, Quaternion.identity);
-            else block = Instantiate(smallBuilding, buildingLocation, Quaternion.identity);
-           
-            print(randomBuilding);
+            var randomBuilding = Random.Range(0, buildingsList.Count);
+            var block = Instantiate(buildingsList[randomBuilding], buildingLocation, Quaternion.identity);
             Buildings.Add(block);
-        }
-
-        //Remove objects will become Roads & Streets
-        foreach (var point in removeObject)
-        {
-            var block = Instantiate(road, point, Quaternion.identity);
-            Streets.Add(block);
         }
 
         foreach (var building in Buildings)
         {
             building.transform.parent = building_Holder.transform;
         }
-
-        foreach (var street in Streets)
-        {
-            street.transform.parent = street_Holder.transform;
-        }
     }
 
     void GenArray()
     {
-        mapData = new Vector3[width + 1, height + 1];
-        for (int y = 0; y <= height; y++)
+        mapData = new Vector3[width + 1, length + 1];
+
+        for (int z = 0, i = 0; z <= length; z++)
         {
-            for (int x = 0; x <= width; x++)
+            for (int x = 0; x <= width; x++, i++)
             {
-                mapData[x, y] = new Vector3(x, 0, y);
+                mapData[x, z] = transform.position + Vector3.zero + new Vector3(x * tileSpacing, 0, z * tileSpacing);
+            }
+        }
+// create floor base
+        var w = width + boarder;
+        var l = length + boarder;
+
+        Vector3[] vertices = new Vector3[(w + 1) * (l + 1)];
+
+
+        for (int z = 0, i = 0; z <= l; z++)
+        {
+            for (int x = 0; x <= w; x++, i++)
+            {
+                vertices[i] = (new Vector3(x * tileSpacing, 0, z * tileSpacing));
             }
         }
 
-        mapData2 = new Vector3[width + 1, height + 1];
-        for (int y = 0; y <= height; y++)
+        ground.vertices = vertices;
+
+        int[] triangles = new int[w * l * 6];
+        for (int ti = 0, vi = 0, y = 0; y < l; y++, vi++)
         {
-            for (int x = 0; x <= width; x++)
+            for (int x = 0; x < w; x++, ti += 6, vi++)
             {
-                mapData2[x, y] = new Vector3(x + mapData.GetUpperBound(0), 0, y);
+                triangles[ti] = vi;
+                triangles[ti + 3] = triangles[ti + 2] = vi + 1;
+                triangles[ti + 4] = triangles[ti + 1] = vi + w + 1;
+                triangles[ti + 5] = vi + w + 2;
             }
         }
 
-        mapData3 = new Vector3[width + 1, height + 1];
-        for (int y = 0; y <= height; y++)
-        {
-            for (int x = 0; x <= width; x++)
-            {
-                mapData3[x, y] = new Vector3(x, 0, y + mapData.GetUpperBound(1));
-            }
-        }
-
-        mapData4 = new Vector3[width + 1, height + 1];
-        for (int y = 0; y <= height; y++)
-        {
-            for (int x = 0; x <= width; x++)
-            {
-                mapData4[x, y] = new Vector3(x + mapData.GetUpperBound(0), 0, y + mapData.GetUpperBound(1));
-            }
-        }
-
-        cityData.Add(mapData);
-        cityData.Add(mapData2);
-        cityData.Add(mapData3);
-        cityData.Add(mapData4);
-
-        heightSizeData = height * 2;
-        widthSizeData = width * 2;
+        ground.triangles = triangles;
+        ground.RecalculateNormals();
     }
 
     // private void OnDrawGizmos()
     // {
+    //     GenArray();
     //     foreach (var p in mapData)
     //     {
     //         Gizmos.color = Color.blue;
-    //         Gizmos.DrawSphere(p, 0.05f);
-    //     }
-    //
-    //
-    //     foreach (var p in mapData2)
-    //     {
-    //         Gizmos.color = Color.green;
-    //         Gizmos.DrawSphere(p, 0.05f);
-    //     }
-    //
-    //     foreach (var p in mapData3)
-    //     {
-    //         Gizmos.color = Color.red;
-    //         Gizmos.DrawSphere(p, 0.05f);
-    //     }
-    //
-    //
-    //     foreach (var p in mapData4)
-    //     {
-    //         Gizmos.color = Color.black;
     //         Gizmos.DrawSphere(p, 0.05f);
     //     }
     // }
